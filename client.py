@@ -11,7 +11,9 @@ async def on_ready():
 
 @client.command(brief="", description="")
 async def cutiemeter(ctx):
-    D10L = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    rating_list = ["1/10", "2/10", "3/10", "4/10", "5/10", "6/10", "7/10", "8/10", "9/10", "10/10"]
+    rating = random.choice(rating_list)
+    await ctx.send(f"Your Cute o'meter rating is {rating}.")
 
 @client.command(brief="Pings Bot", description="Pings Bot")
 async def ping(ctx):
