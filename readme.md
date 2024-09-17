@@ -1,3 +1,3 @@
-# >~<
+# Colon Three - Discord Bot
 
-<p> >~< is a discord bot </p>
+<p>:3 {command}</p>
