@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import random
 
-client = commands.Bot(command_prefix=">~<", intents=discord.Intents.all())
+client = commands.Bot(command_prefix=":3 ", intents=discord.Intents.all())
 
 @client.event
 async def on_ready():
