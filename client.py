@@ -9,6 +9,10 @@ async def on_ready():
     await client.tree.sync()
     print("Bot Connected")
 
+@client.command(brief="", description="")
+async def cutiemeter(ctx):
+    D10L = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
 @client.command(brief="Pings Bot", description="Pings Bot")
 async def ping(ctx):
     await ctx.send("Bot Pinged")
