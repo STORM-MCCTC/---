@@ -1,15 +1,42 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import random
 import time
-from datetime import timedelta
+import asyncio
+import re
+from datetime import datetime, timedelta, timezone
 
 client = commands.Bot(command_prefix="~", intents=discord.Intents.all())
 
 start_time = time.time()
 
+reminders = {}
+
+def parse_duration(duration: str) -> int:
+    time_units = {
+        's': 1,  # seconds
+        'm': 60, # minutes
+        'h': 3600, # hours
+        'd': 86400  # days
+    }
+    match = re.match(r'(\d+)([smhd])', duration)
+    if match:
+        value, unit = match.groups()
+        return int(value) * time_units[unit]
+    return None
+
+@tasks.loop(seconds=10)
+async def check_reminders():
+    now = datetime.now(timezone.utc)
+    for user_id, (reminder_time, message) in list(reminders.items()):
+        if reminder_time <= now:
+            user = client.get_user(user_id)
+            if user:
+                await user.send(message)
+            del reminders[user_id]
 @client.event
 async def on_ready():
+    check_reminders.start()
     await client.tree.sync()
     print("Bot Connected")
 
@@ -116,6 +143,16 @@ async def avatar(ctx, user: discord.User = None):
         user = ctx.author
     await ctx.send(f"{user.mention}'s avatar: {user.avatar.url}")
 
+@client.command(brief="Set a reminder", description="Sets a reminder with a time duration and message.")
+async def remindme(ctx, duration: str, *, message: str):
+    seconds = parse_duration(duration)
+    if seconds is None:
+        await ctx.send("Invalid duration format. Please use format like `10m` for 10 minutes.")
+        return
+    reminder_time = datetime.now(timezone.utc) + timedelta(seconds=seconds)
+    reminders[ctx.author.id] = (reminder_time, message)
+    await ctx.send(f"Reminder set for {duration} from now!")
+
 #! Slash commands
 
 # /cutiemeter
@@ -220,7 +257,17 @@ async def slash_avatar(interaction: discord.Interaction, user: discord.User = No
     if user is None:
         user = interaction.user
     await interaction.response.send_message(f"{user.mention}'s avatar: {user.avatar.url}")
-    
+
+@client.tree.command(name="remindme", description="Sets a reminder with a time duration and message.")
+async def slash_remindme(interaction: discord.Interaction, duration: str, message: str):
+    seconds = parse_duration(duration)
+    if seconds is None:
+        await interaction.response.send_message("Invalid duration format. Please use format like `10m` for 10 minutes.")
+        return
+    reminder_time = datetime.now(timezone.utc) + timedelta(seconds=seconds)
+    reminders[interaction.user.id] = (reminder_time, message)
+    await interaction.response.send_message(f"Reminder set for {duration} from now!")
+
 #! reads token and starts
 with open("Bot_token.txt") as f:
     token = f.read()
