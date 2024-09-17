@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import random
 
-client = commands.Bot(command_prefix=":3 ", intents=discord.Intents.all())
+client = commands.Bot(command_prefix="~", intents=discord.Intents.all())
 
 @client.event
 async def on_ready():
@@ -13,7 +13,7 @@ async def on_ready():
 async def cutiemeter(ctx):
     rating_list = ["1/10", "2/10", "3/10", "4/10", "5/10", "6/10", "7/10", "8/10", "9/10", "10/10"]
     rating = random.choice(rating_list)
-    await ctx.send(f"Your Cute o'meter rating is {rating}.")
+    await ctx.send(f"Your Cute o'meter rating is {rating} :3")
 
 @client.command(brief="Pings Bot", description="Pings Bot")
 async def ping(ctx):
