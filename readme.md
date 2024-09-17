@@ -1,3 +1,3 @@
 # >~<
 
-<p>">~< is a discord bot"</p>
+<p> >~< is a discord bot </p>
