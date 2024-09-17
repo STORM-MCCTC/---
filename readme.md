@@ -1,3 +1,5 @@
 # Colon Three - Discord Bot
 
-<p>:3 {command}</p>
+supports prefix and slash commands
+
+all functions of this bot are free and open-source and always will be
