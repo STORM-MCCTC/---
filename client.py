@@ -7,7 +7,7 @@ import re
 from datetime import datetime, timedelta, timezone
 import sqlite3
 
-#! ----------| Version - 0.1.1 |---------- !#
+#! ----------| Version - 0.1.2 |---------- !#
 
 client = commands.Bot(command_prefix="~", intents=discord.Intents.all())
 
@@ -15,7 +15,7 @@ start_time = time.time()
 
 reminders = {}
 
-version_number = "Version - 0.1.1" 
+version_number = "Version - 0.1.2" 
 
 def parse_duration(duration: str) -> int:
     time_units = {
@@ -39,6 +39,7 @@ async def check_reminders():
             if user:
                 await user.send(message)
             del reminders[user_id]
+
 @client.event
 async def on_ready():
     check_reminders.start()
@@ -414,6 +415,7 @@ async def command_error(ctx, error):
 #! link commands
 
 @client.command(name='setlink', brief="sets a twitch link", description="sets a twitch link")
+@commands.has_permissions(administrator=True)
 async def set_twitch_link(ctx, twitch_link: str):
     guild_id = ctx.guild.id
 
