@@ -54,7 +54,4 @@ async def on_ready():
     await client.tree.sync()
     print("Bot Connected")
 
-# All your other commands and functionality go here...
-
-# Finally, run the bot using the token from the file
 client.run(TOKEN)
