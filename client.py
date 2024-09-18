@@ -5,8 +5,9 @@ import time
 import asyncio
 import re
 from datetime import datetime, timedelta, timezone
+import sqlite3
 
-#! ----------| Version - 0.1.0 |---------- !#
+#! ----------| Version - 0.1.1 |---------- !#
 
 client = commands.Bot(command_prefix="~", intents=discord.Intents.all())
 
@@ -14,7 +15,7 @@ start_time = time.time()
 
 reminders = {}
 
-version_number = "Version - 0.1.0"
+version_number = "Version - 0.1.1" 
 
 def parse_duration(duration: str) -> int:
     time_units = {
@@ -41,8 +42,22 @@ async def check_reminders():
 @client.event
 async def on_ready():
     check_reminders.start()
+    execute_sql_file('client.sql')
     await client.tree.sync()
     print("Bot Connected")
+
+def execute_sql_file(filename):
+    with open(filename, 'r') as sql_file:
+        sql_script = sql_file.read()
+    
+    conn = sqlite3.connect('mydatabase.db')
+    cursor = conn.cursor()
+
+    # Execute the SQL script
+    cursor.executescript(sql_script)
+    
+    conn.commit()
+    conn.close()
 
 #! Prefix commands
 
@@ -396,9 +411,50 @@ async def command_error(ctx, error):
     else:
         await ctx.send("An error occurred while processing the command.")
 
+#! link commands
+
+@client.command(name='setlink', brief="sets a twitch link", description="sets a twitch link")
+async def set_twitch_link(ctx, twitch_link: str):
+    guild_id = ctx.guild.id
+
+    # Connect to the database
+    conn = sqlite3.connect('mydatabase.db')
+    cursor = conn.cursor()
+
+    # Insert or replace the link for this guild
+    cursor.execute('''
+    INSERT INTO twitch_links (guild_id, twitch_link) 
+    VALUES (?, ?)
+    ON CONFLICT(guild_id) 
+    DO UPDATE SET twitch_link=excluded.twitch_link
+    ''', (guild_id, twitch_link))
+
+    conn.commit()
+    conn.close()
+
+    await ctx.send(f"Twitch link has been set to {twitch_link}")
+
+@client.command(name='twitch', brief="sends a twitch link", description="sets a twitch link")
+async def get_twitch_link(ctx):
+    guild_id = ctx.guild.id
+
+    # Connect to the database
+    conn = sqlite3.connect('mydatabase.db')
+    cursor = conn.cursor()
+
+    # Retrieve the Twitch link for the guild
+    cursor.execute('SELECT twitch_link FROM twitch_links WHERE guild_id = ?', (guild_id,))
+    result = cursor.fetchone()
+    conn.close()
+
+    if result:
+        await ctx.send(f"Here is the Twitch link: {result[0]}")
+    else:
+        await ctx.send("No Twitch link set for this server.")
+
 #! reads token and starts
 
-with open("Bot_token.txt") as f:
+with open("client_token.txt") as f:
     token = f.read()
 
 client.run(token)
