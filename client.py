@@ -42,6 +42,13 @@ async def on_ready():
 
 #! Prefix commands
 
+# ~meow
+@client.command(brief="meow meow :3", description="Meow Meow :3")
+async def meow(ctx):
+    meow_list = ["Meow :3", "Meow meow", "Bark >:3", "Bark bark >:3", "Meow Meow :3", "*Cat sounds*", "Nuh uh", ":3", "Meow", "Meow"]
+    meow = random.choice(meow_list)
+    await ctx.send(meow)
+
 # ~cutiemeter
 @client.command(brief="Rates how cute you are", description="Rates how cute you are on a scale of 1 to 10.")
 async def cutiemeter(ctx):
@@ -73,7 +80,7 @@ async def roll(ctx, sides: int):
 
 # ~Quote
 @client.command(brief="random quote", description="Returns a random inspirational quote.")
-async def Quote(ctx):
+async def quote(ctx):
     quote_list = [
     "All our dreams can come true, if we have the courage to pursue them. —Walt Disney",
     "The secret of getting ahead is getting started. —Mark Twain",
@@ -154,6 +161,13 @@ async def remindme(ctx, duration: str, *, message: str):
     await ctx.send(f"Reminder set for {duration} from now!")
 
 #! Slash commands
+
+# /meow
+@client.tree.command(name="meow", description="Meow Meow :3")
+async def meow(interaction: discord.Interaction):
+    meow_list = ["Meow :3", "Meow meow", "Bark >:3", "Bark bark >:3", "Meow Meow :3", "*Cat sounds*", "Nuh uh", ":3", "Meow", "Meow"]
+    meow = random.choice(meow_list)
+    await interaction.response.send_message(meow)
 
 # /cutiemeter
 @client.tree.command(name="cutiemeter", description="Rates how cute you are on a scale of 1 to 10.")
@@ -267,6 +281,105 @@ async def slash_remindme(interaction: discord.Interaction, duration: str, messag
     reminder_time = datetime.now(timezone.utc) + timedelta(seconds=seconds)
     reminders[interaction.user.id] = (reminder_time, message)
     await interaction.response.send_message(f"Reminder set for {duration} from now!")
+
+#! admin commands
+
+# ~kick Command (Admin Only)
+@client.command(brief="Kick a user from the server", description="Kicks the specified user with an optional reason")
+@commands.has_permissions(administrator=True)
+async def kick(ctx, member: discord.Member, *, reason=None):
+    if member == ctx.author:
+        await ctx.send("You cannot kick yourself!")
+        return
+    
+    await member.kick(reason=reason)
+    await ctx.send(f"{member.mention} has been kicked from the server. Reason: {reason or 'No reason provided.'}")
+
+# ~ban (Admin Only)
+@client.command(brief="Ban a user from the server", description="Bans the specified user with an optional reason")
+@commands.has_permissions(administrator=True)
+async def ban(ctx, member: discord.Member, *, reason=None):
+    if member == ctx.author:
+        await ctx.send("You cannot ban yourself!")
+        return
+    
+    await member.ban(reason=reason)
+    await ctx.send(f"{member.mention} has been banned from the server. Reason: {reason or 'No reason provided.'}")
+
+# ~unban (Admin Only)
+@client.command(brief="Unban a previously banned user", description="Unbans the user by their name and discriminator")
+@commands.has_permissions(administrator=True)  # Requires Administrator permission
+async def unban(ctx, *, member_name):
+    banned_users = await ctx.guild.bans()
+    member_name, member_discriminator = member_name.split('#')
+    
+    for ban_entry in banned_users:
+        user = ban_entry.user
+        if (user.name, user.discriminator) == (member_name, member_discriminator):
+            await ctx.guild.unban(user)
+            await ctx.send(f"{user.mention} has been unbanned.")
+            return
+
+    await ctx.send(f"User {member_name}#{member_discriminator} was not found.")
+
+# ~mute (Admin Only)
+@client.command(brief="Mute a user in the server", description="Mutes the specified user for a certain duration")
+@commands.has_permissions(administrator=True)  # Requires Administrator permission
+async def mute(ctx, member: discord.Member, duration: int = 10, *, reason=None):
+    muted_role = discord.utils.get(ctx.guild.roles, name="Muted")
+    
+    if not muted_role:
+        muted_role = await ctx.guild.create_role(name="Muted")
+        for channel in ctx.guild.channels:
+            await channel.set_permissions(muted_role, speak=False, send_messages=False)
+    
+    await member.add_roles(muted_role)
+    await ctx.send(f"{member.mention} has been muted for {duration} minutes. Reason: {reason or 'No reason provided.'}")
+    
+    # Unmute after the duration expires
+    await discord.utils.sleep_until(datetime.now() + timedelta(minutes=duration))
+    await member.remove_roles(muted_role)
+    await ctx.send(f"{member.mention} has been unmuted.")
+
+# ~warn (Admin Only)
+warnings = {}  # Keep track of warnings
+
+@client.command(brief="Warn a user", description="Issues a warning to the specified user with an optional reason")
+@commands.has_permissions(administrator=True)  # Requires Administrator permission
+async def warn(ctx, member: discord.Member, *, reason=None):
+    if member == ctx.author:
+        await ctx.send("You cannot warn yourself!")
+        return
+    
+    if member not in warnings:
+        warnings[member] = []
+    
+    warnings[member].append((reason, datetime.now()))
+    await ctx.send(f"{member.mention} has been warned. Reason: {reason or 'No reason provided.'}")
+
+# 6. ~clear Command (Admin Only)
+@client.command(brief="Clear a number of messages in a channel", description="Clears the specified number of messages from the channel")
+@commands.has_permissions(administrator=True)  # Requires Administrator permission
+async def clear(ctx, amount: int):
+    if amount <= 0:
+        await ctx.send("The number of messages to clear must be greater than zero.")
+        return
+
+    await ctx.channel.purge(limit=amount + 1)  # +1 to include the command message itself
+    await ctx.send(f"Cleared {amount} messages.", delete_after=5)
+
+# Error handling for permission errors
+@kick.error
+@ban.error
+@unban.error
+@mute.error
+@warn.error
+@clear.error
+async def command_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("You do not have the necessary permissions to use this command.")
+    else:
+        await ctx.send("An error occurred while processing the command.")
 
 #! reads token and starts
 with open("Bot_token.txt") as f:
