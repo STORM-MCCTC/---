@@ -7,7 +7,7 @@ import re
 from datetime import datetime, timedelta, timezone
 import sqlite3
 
-#! ----------| Version - 0.1.2 |---------- !#
+#! ----------| Version - 0.1.3 |---------- !#
 
 client = commands.Bot(command_prefix="~", intents=discord.Intents.all())
 
@@ -15,7 +15,7 @@ start_time = time.time()
 
 reminders = {}
 
-version_number = "Version - 0.1.2" 
+version_number = "Version - 0.1.3" 
 
 def parse_duration(duration: str) -> int:
     time_units = {
@@ -47,6 +47,7 @@ async def on_ready():
     await client.tree.sync()
     print("Bot Connected")
 
+# execute_sql
 def execute_sql_file(filename):
     with open(filename, 'r') as sql_file:
         sql_script = sql_file.read()
@@ -296,12 +297,14 @@ async def serverinfo(interaction: discord.Interaction):
     
     await interaction.response.send_message(embed=embed)
 
+# /avatar
 @client.tree.command(name="avatar", description="Displays the avatar of a mentioned user or yourself if no user is mentioned.")
 async def slash_avatar(interaction: discord.Interaction, user: discord.User = None):
     if user is None:
         user = interaction.user
     await interaction.response.send_message(f"{user.mention}'s avatar: {user.avatar.url}")
 
+# /remindme
 @client.tree.command(name="remindme", description="Sets a reminder with a time duration and message.")
 async def slash_remindme(interaction: discord.Interaction, duration: str, message: str):
     seconds = parse_duration(duration)
