@@ -202,17 +202,6 @@ async def meow(interaction: discord.Interaction):
     meow = random.choice(meow_list)
     await interaction.response.send_message(meow)
 
-# /cutiemeter
-@client.tree.command(name="cutiemeter", description="Rates how cute someone is on a scale of 1 to 10.")
-@app_commands.describe(user="The user to rate (mention someone)")
-async def cutiemeter(interaction: discord.Interaction, user: discord.Member = None):
-    if user is None:
-        user = interaction.user
-
-    rating_list = ["1/10", "2/10", "3/10", "4/10", "5/10", "6/10", "7/10", "8/10", "9/10", "10/10"]
-    rating = random.choice(rating_list)
-    await interaction.response.send_message(f"{user.mention} is a {rating} on the Cute o'meter :3")
-
 # /ping
 @client.tree.command(name="ping", description="Pings the bot and measures its latency.")
 async def ping(interaction: discord.Interaction):
