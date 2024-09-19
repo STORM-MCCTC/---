@@ -24,7 +24,7 @@ def parse_duration(duration: str) -> int:
         'h': 3600, # hours
         'd': 86400  # days
     }
-    match = re.match(r'(\d+)([smhd])', duration)
+    match = re.match(r'(\d+)([smhd])', duration) #? syntax highlight says no but i do not care fr
     if match:
         value, unit = match.groups()
         return int(value) * time_units[unit]
@@ -71,11 +71,14 @@ async def meow(ctx):
     await ctx.send(meow)
 
 # ~cutiemeter
-@client.command(brief="Rates how cute you are", description="Rates how cute you are on a scale of 1 to 10.")
-async def cutiemeter(ctx):
+@client.command(brief="Rates how cute someone is", description="Rates how cute someone is on a scale of 1 to 10.")
+async def cutiemeter(ctx, member: commands.MemberConverter = None):
+    if member is None:
+        member = ctx.author
+
     rating_list = ["1/10", "2/10", "3/10", "4/10", "5/10", "6/10", "7/10", "8/10", "9/10", "10/10"]
     rating = random.choice(rating_list)
-    await ctx.send(f"{ctx.author.mention} is a {rating} on the Cute o'meter :3")
+    await ctx.send(f"{member.mention} is a {rating} on the Cute o'meter :3")
 
 # ~ping
 @client.command(brief="Pings Bot", description="Pings Bot")
@@ -200,11 +203,15 @@ async def meow(interaction: discord.Interaction):
     await interaction.response.send_message(meow)
 
 # /cutiemeter
-@client.tree.command(name="cutiemeter", description="Rates how cute you are on a scale of 1 to 10.")
-async def cutiemeter(interaction: discord.Interaction):
+@client.tree.command(name="cutiemeter", description="Rates how cute someone is on a scale of 1 to 10.")
+@app_commands.describe(user="The user to rate (mention someone)")
+async def cutiemeter(interaction: discord.Interaction, user: discord.Member = None):
+    if user is None:
+        user = interaction.user
+
     rating_list = ["1/10", "2/10", "3/10", "4/10", "5/10", "6/10", "7/10", "8/10", "9/10", "10/10"]
     rating = random.choice(rating_list)
-    await interaction.response.send_message(f"{interaction.user.mention} is a {rating} on the Cute o'meter :3")
+    await interaction.response.send_message(f"{user.mention} is a {rating} on the Cute o'meter :3")
 
 # /ping
 @client.tree.command(name="ping", description="Pings the bot and measures its latency.")
